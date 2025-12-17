@@ -9,6 +9,7 @@ import com.example.smartmanage.data.AppDatabase
 import com.example.smartmanage.data.Template
 import com.example.smartmanage.data.Transaction
 import com.example.smartmanage.ui.screens.AnalyticsScreen
+import com.example.smartmanage.ui.screens.BudgetScreen
 import com.example.smartmanage.ui.screens.DashboardScreen
 import com.example.smartmanage.ui.screens.SettingsScreen
 import com.example.smartmanage.ui.screens.TemplatesScreen
@@ -89,6 +90,11 @@ fun AppNavGraph(
         // ---------------- TEMPLATES ----------------
         composable("templates") {
             TemplatesScreen(database = database)
+        }
+
+        // ---------------- BUDGET ----------------
+        composable("budget") {
+            BudgetScreen(database = database)
         }
 
         // ---------------- ADD INCOME ----------------

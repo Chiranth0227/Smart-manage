@@ -34,4 +34,20 @@ interface TransactionDao {
 
     @Query("SELECT * FROM templates ORDER BY id DESC")
     fun getAllTemplates(): Flow<List<Template>>
+
+    // Budget operations
+    @Insert
+    suspend fun insertBudget(budget: Budget)
+
+    @Update
+    suspend fun updateBudget(budget: Budget)
+
+    @Delete
+    suspend fun deleteBudget(budget: Budget)
+
+    @Query("SELECT * FROM budgets ORDER BY id DESC")
+    fun getAllBudgets(): Flow<List<Budget>>
+    
+    @Query("SELECT COALESCE(SUM(amount), 0.0) FROM transactions WHERE type = 'expense' AND note = :category")
+    fun getSpentByCategory(category: String): Flow<Double>
 }

@@ -132,7 +132,7 @@ fun DashboardScreen(navController: NavHostController, database: AppDatabase) {
                             title = "Budget",
                             icon = Icons.Default.AccountBalanceWallet,
                             color = Color(0xFF43A047),
-                            onClick = { /* Navigate to budget */ },
+                            onClick = { navController.navigate("budget") },
                             modifier = Modifier.weight(1f)
                         )
                     }
