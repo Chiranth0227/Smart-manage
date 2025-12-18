@@ -47,7 +47,10 @@ interface TransactionDao {
 
     @Query("SELECT * FROM budgets ORDER BY id DESC")
     fun getAllBudgets(): Flow<List<Budget>>
+
+    @Query("SELECT * FROM budgets WHERE category = :category")
+    fun getBudgetByCategory(category: String): Flow<Budget?>
     
-    @Query("SELECT COALESCE(SUM(amount), 0.0) FROM transactions WHERE type = 'expense' AND note = :category")
+    @Query("SELECT COALESCE(SUM(amount), 0.0) FROM transactions WHERE type = 'expense' AND category = :category")
     fun getSpentByCategory(category: String): Flow<Double>
 }

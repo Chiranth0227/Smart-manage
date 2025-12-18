@@ -1,22 +1,55 @@
 package com.example.smartmanage
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.smartmanage.data.AppDatabase
+import com.example.smartmanage.data.Transaction
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddExpenseScreen(onSaveExpense: (amount: Double, category: String, note: String) -> Unit) {
+fun AddExpenseScreen(
+    database: AppDatabase,
+    navController: NavController
+) {
     var amount by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("Food") }
     var error by remember { mutableStateOf("") }
 
+    val scope = rememberCoroutineScope()
     val categories = listOf("Food", "Housing", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Others")
+
+    val budget by database.transactionDao().getBudgetByCategory(category).collectAsState(initial = null)
+    val spentAmount by database.transactionDao().getSpentByCategory(category).collectAsState(initial = 0.0)
 
     Column(
         modifier = Modifier
@@ -28,7 +61,6 @@ fun AddExpenseScreen(onSaveExpense: (amount: Double, category: String, note: Str
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Amount input
         OutlinedTextField(
             value = amount,
             onValueChange = { amount = it },
@@ -39,7 +71,6 @@ fun AddExpenseScreen(onSaveExpense: (amount: Double, category: String, note: Str
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Category selector
         var expandedCategory by remember { mutableStateOf(false) }
         ExposedDropdownMenuBox(
             expanded = expandedCategory,
@@ -74,7 +105,6 @@ fun AddExpenseScreen(onSaveExpense: (amount: Double, category: String, note: Str
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Note input
         OutlinedTextField(
             value = note,
             onValueChange = { note = it },
@@ -89,15 +119,25 @@ fun AddExpenseScreen(onSaveExpense: (amount: Double, category: String, note: Str
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        // Save button
         Button(
             onClick = {
                 val amountDouble = amount.toDoubleOrNull()
                 if (amountDouble == null || amountDouble <= 0.0) {
                     error = "Please enter a valid amount"
-                } else {
-                    error = ""
-                    onSaveExpense(amountDouble, category, note)
+                    return@Button
+                }
+
+                scope.launch {
+                    val currentBudget = budget
+                    if (currentBudget != null) {
+                        if (spentAmount + amountDouble > currentBudget.amount) {
+                            error = "This expense exceeds the budget for this category."
+                            return@launch
+                        }
+                    }
+
+                    database.transactionDao().insert(Transaction(amount = amountDouble, type = "expense", category = category, note = note))
+                    navController.popBackStack()
                 }
             },
             modifier = Modifier.fillMaxWidth()

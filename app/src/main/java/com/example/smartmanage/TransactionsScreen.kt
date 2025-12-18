@@ -96,7 +96,7 @@ fun TransactionItemView(transaction: Transaction) {
 
             // Amount
             Text(
-                text = (if (transaction.type == "expense") "-" else "+") + "$${transaction.amount}",
+                text = (if (transaction.type == "expense") "-" else "+") + "₹${transaction.amount}",
                 style = MaterialTheme.typography.titleMedium,
                 color = if (transaction.type == "income") Color(0xFF2E7D32) else Color(0xFFC62828),
                 fontWeight = FontWeight.Bold

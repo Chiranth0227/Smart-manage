@@ -1,8 +1,8 @@
 package com.example.smartmanage
 
-import java.text.NumberFormat
-import java.util.Locale
+import java.text.DecimalFormat
 
 fun formatCurrency(amount: Double): String {
-    return NumberFormat.getCurrencyInstance(Locale("en", "IN")).format(amount)
+    val formatter = DecimalFormat("₹#,##,##0.00")
+    return formatter.format(amount)
 }

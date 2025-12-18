@@ -117,12 +117,10 @@ fun AppNavGraph(
 
         // ---------------- ADD EXPENSE ----------------
         composable("add_expense") {
-            AddExpenseScreen(onSaveExpense = { amount, category, note ->
-                scope.launch {
-                    database.transactionDao().insert(Transaction(amount = amount, type = "expense", category = category, note = note))
-                }
-                navController.popBackStack()
-            })
+            AddExpenseScreen(
+                database = database,
+                navController = navController
+            )
         }
 
         // ---------------- PROFILE ----------------
