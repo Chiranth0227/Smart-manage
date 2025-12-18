@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.smartmanage.data.AppDatabase
 import com.example.smartmanage.data.Template
 import com.example.smartmanage.data.Transaction
@@ -25,7 +26,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TemplatesScreen(database: AppDatabase) {
+fun TemplatesScreen(navController: NavHostController, database: AppDatabase) {
     var showAddDialog by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf("All") }
     var searchQuery by remember { mutableStateOf("") }
@@ -61,9 +62,12 @@ fun TemplatesScreen(database: AppDatabase) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
                     Column {
                         Text(
-                            text = "Templates",
+                            text = "Personal Expense",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -98,7 +102,7 @@ fun TemplatesScreen(database: AppDatabase) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp)),
-                    placeholder = { Text("Search templates...") },
+                    placeholder = { Text("Search Expenses...") },
                     leadingIcon = {
                         Icon(Icons.Default.Search, contentDescription = "Search")
                     },
@@ -226,6 +230,7 @@ fun TemplatesScreen(database: AppDatabase) {
                                 Transaction(
                                     amount = template.amount,
                                     type = if (template.type == "INCOME") "income" else "expense",
+                                    category = template.category,
                                     note = template.name
                                 )
                             )

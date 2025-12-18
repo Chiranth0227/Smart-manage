@@ -43,13 +43,13 @@ fun AppNavGraph(
                 onDemoLogin = {
                     scope.launch {
                         val dao = database.transactionDao()
-                        dao.insert(Transaction(amount = 5000.0, type = "income", note = "Salary"))
-                        dao.insert(Transaction(amount = 1500.0, type = "expense", note = "Rent"))
-                        dao.insert(Transaction(amount = 300.0, type = "expense", note = "Groceries"))
-                        dao.insert(Transaction(amount = 100.0, type = "expense", note = "Transport"))
-                        dao.insert(Transaction(amount = 1200.0, type = "income", note = "Freelance Project"))
-                        dao.insert(Transaction(amount = 450.0, type = "expense", note = "Dinner & Movies"))
-                        dao.insert(Transaction(amount = 80.0, type = "expense", note = "Coffee"))
+                        dao.insert(Transaction(amount = 5000.0, type = "income", category = "Salary", note = "Salary"))
+                        dao.insert(Transaction(amount = 1500.0, type = "expense", category = "Housing", note = "Rent"))
+                        dao.insert(Transaction(amount = 300.0, type = "expense", category = "Food", note = "Groceries"))
+                        dao.insert(Transaction(amount = 100.0, type = "expense", category = "Transport", note = "Transport"))
+                        dao.insert(Transaction(amount = 1200.0, type = "income", category = "Freelance", note = "Freelance Project"))
+                        dao.insert(Transaction(amount = 450.0, type = "expense", category = "Entertainment", note = "Dinner & Movies"))
+                        dao.insert(Transaction(amount = 80.0, type = "expense", category = "Food", note = "Coffee"))
                         
                         // Seed some templates
                         dao.insertTemplate(Template(name = "Monthly Salary", amount = 5000.0, type = "INCOME", category = "Salary", isRecurring = true, frequency = "monthly"))
@@ -84,12 +84,18 @@ fun AppNavGraph(
 
         // ---------------- ANALYTICS ----------------
         composable("analytics") {
-            AnalyticsScreen(database = database)
+            AnalyticsScreen(
+                navController = navController,
+                database = database
+            )
         }
 
         // ---------------- TEMPLATES ----------------
         composable("templates") {
-            TemplatesScreen(database = database)
+            TemplatesScreen(
+                navController = navController,
+                database = database
+            )
         }
 
         // ---------------- BUDGET ----------------
@@ -99,9 +105,9 @@ fun AppNavGraph(
 
         // ---------------- ADD INCOME ----------------
         composable("add_income") {
-            AddIncomeScreen(onSaveIncome = { amount, note ->
+            AddIncomeScreen(onSaveIncome = { amount, category, note ->
                 scope.launch {
-                    database.transactionDao().insert(Transaction(amount = amount, type = "income", note = note))
+                    database.transactionDao().insert(Transaction(amount = amount, type = "income", category = category, note = note))
                 }
                 navController.popBackStack()
             })
@@ -109,9 +115,9 @@ fun AppNavGraph(
 
         // ---------------- ADD EXPENSE ----------------
         composable("add_expense") {
-            AddExpenseScreen(onSaveExpense = { amount, note ->
+            AddExpenseScreen(onSaveExpense = { amount, category, note ->
                 scope.launch {
-                    database.transactionDao().insert(Transaction(amount = amount, type = "expense", note = note))
+                    database.transactionDao().insert(Transaction(amount = amount, type = "expense", category = category, note = note))
                 }
                 navController.popBackStack()
             })

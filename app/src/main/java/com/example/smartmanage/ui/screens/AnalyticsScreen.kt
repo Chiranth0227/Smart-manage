@@ -10,9 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +24,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.smartmanage.data.AppDatabase
 import com.example.smartmanage.formatCurrency
 import kotlinx.coroutines.flow.map
@@ -33,12 +32,13 @@ import kotlin.math.min
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AnalyticsScreen(database: AppDatabase) {
+fun AnalyticsScreen(navController: NavHostController, database: AppDatabase) {
     var selectedPeriod by remember { mutableStateOf("This Month") }
     var showPeriodMenu by remember { mutableStateOf(false) }
 
     // Fetch data from database
     val transactions by database.transactionDao().getAllTransactions().collectAsState(initial = emptyList())
+    val templates by database.transactionDao().getAllTemplates().collectAsState(initial = emptyList())
 
     // Process data for charts
     val incomeTransactions = transactions.filter { it.type == "income" }
@@ -47,6 +47,8 @@ fun AnalyticsScreen(database: AppDatabase) {
     val totalIncome = incomeTransactions.sumOf { it.amount }
     val totalExpense = expenseTransactions.sumOf { it.amount }
     val savingsRate = if (totalIncome > 0) ((totalIncome - totalExpense) / totalIncome * 100).toInt() else 0
+
+    val recurringTemplates = templates.filter { it.isRecurring }
 
     // Group expenses by note (or category if you add a category field later)
     val expensesByCategory = expenseTransactions
@@ -61,10 +63,6 @@ fun AnalyticsScreen(database: AppDatabase) {
         .sortedByDescending { it.amount }
         .take(6) // Top 6 categories
 
-    // For simplicity, we'll just mock monthly trend data for now based on the total,
-    // or you could implement actual date-based grouping if your Transaction entity had a date field.
-    // Since Transaction only has id, amount, type, note, we can't do accurate monthly trends yet.
-    // We will show the current totals as a "trend" for demonstration.
     val monthlyData = listOf(
         MonthData("Current", totalIncome, totalExpense)
     )
@@ -96,27 +94,33 @@ fun AnalyticsScreen(database: AppDatabase) {
                     )
                 }
 
-                Box {
-                    OutlinedButton(
-                        onClick = { showPeriodMenu = true },
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(selectedPeriod)
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = { navController.navigate("templates") }) {
+                        Text("Templates")
                     }
 
-                    DropdownMenu(
-                        expanded = showPeriodMenu,
-                        onDismissRequest = { showPeriodMenu = false }
-                    ) {
-                        listOf("This Week", "This Month", "This Year", "All Time").forEach { period ->
-                            DropdownMenuItem(
-                                text = { Text(period) },
-                                onClick = {
-                                    selectedPeriod = period
-                                    showPeriodMenu = false
-                                }
-                            )
+                    Box {
+                        OutlinedButton(
+                            onClick = { showPeriodMenu = true },
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(selectedPeriod)
+                            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                        }
+
+                        DropdownMenu(
+                            expanded = showPeriodMenu,
+                            onDismissRequest = { showPeriodMenu = false }
+                        ) {
+                            listOf("This Week", "This Month", "This Year", "All Time").forEach { period ->
+                                DropdownMenuItem(
+                                    text = { Text(period) },
+                                    onClick = {
+                                        selectedPeriod = period
+                                        showPeriodMenu = false
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -147,17 +151,31 @@ fun AnalyticsScreen(database: AppDatabase) {
         }
 
         item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                StatCard(
+                    title = "Total Templates",
+                    value = templates.size.toString(),
+                    icon = Icons.Default.Description,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f)
+                )
+                StatCard(
+                    title = "Recurring",
+                    value = recurringTemplates.size.toString(),
+                    icon = Icons.Default.Loop,
+                    color = Color(0xFF4CAF50),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+
+        item {
             SavingsRateCard(savingsRate)
         }
 
-        // Line Chart (Placeholder for now as we lack date data)
-        /*
-        item {
-            Card(...) { ... }
-        }
-        */
-
-        // Pie Chart
         if (expensesByCategory.isNotEmpty()) {
             item {
                 Card(
@@ -331,9 +349,6 @@ fun SavingsRateCard(savingsRate: Int) {
     }
 }
 
-// LineChart and BarChart removed or commented out as they relied on monthlyData which we don't fully have from DB yet.
-// If you implement dates in Transaction, you can uncomment and adapt them.
-
 @Composable
 fun PieChart(data: List<CategoryData>, modifier: Modifier = Modifier) {
     val animatedProgress = remember { Animatable(0f) }
@@ -368,7 +383,6 @@ fun PieChart(data: List<CategoryData>, modifier: Modifier = Modifier) {
             startAngle += sweepAngle
         }
 
-        // Draw center circle for donut effect
         drawCircle(
             color = Color.White,
             radius = radius * 0.5f,

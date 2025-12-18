@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.smartmanage.TransactionItemView
 import com.example.smartmanage.data.AppDatabase
+import com.example.smartmanage.data.Transaction
 import com.example.smartmanage.formatCurrency
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -95,8 +96,8 @@ fun DashboardScreen(navController: NavHostController, database: AppDatabase) {
                 // Balance Card
                 item {
                     BalanceCard(
-                        income = totalIncome,
-                        expense = totalExpense
+                        income = totalIncome ?: 0.0,
+                        expense = totalExpense ?: 0.0
                     )
                 }
 
@@ -122,7 +123,7 @@ fun DashboardScreen(navController: NavHostController, database: AppDatabase) {
                             modifier = Modifier.weight(1f)
                         )
                         QuickActionCard(
-                            title = "Templates",
+                            title = "Personal Expense",
                             icon = Icons.Default.Description,
                             color = Color(0xFFFF6584),
                             onClick = { navController.navigate("templates") },

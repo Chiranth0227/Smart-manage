@@ -8,11 +8,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddExpenseScreen(onSaveExpense: (amount: Double, note: String) -> Unit) {
+fun AddExpenseScreen(onSaveExpense: (amount: Double, category: String, note: String) -> Unit) {
     var amount by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
+    var category by remember { mutableStateOf("Food") }
     var error by remember { mutableStateOf("") }
+
+    val categories = listOf("Food", "Housing", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Others")
 
     Column(
         modifier = Modifier
@@ -32,6 +36,41 @@ fun AddExpenseScreen(onSaveExpense: (amount: Double, note: String) -> Unit) {
             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
         )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Category selector
+        var expandedCategory by remember { mutableStateOf(false) }
+        ExposedDropdownMenuBox(
+            expanded = expandedCategory,
+            onExpandedChange = { expandedCategory = it }
+        ) {
+            OutlinedTextField(
+                value = category,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Category") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategory) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(MenuAnchorType.PrimaryNotEditable, true)
+            )
+
+            ExposedDropdownMenu(
+                expanded = expandedCategory,
+                onDismissRequest = { expandedCategory = false }
+            ) {
+                categories.forEach { cat ->
+                    DropdownMenuItem(
+                        text = { Text(cat) },
+                        onClick = {
+                            category = cat
+                            expandedCategory = false
+                        }
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -58,7 +97,7 @@ fun AddExpenseScreen(onSaveExpense: (amount: Double, note: String) -> Unit) {
                     error = "Please enter a valid amount"
                 } else {
                     error = ""
-                    onSaveExpense(amountDouble, note)
+                    onSaveExpense(amountDouble, category, note)
                 }
             },
             modifier = Modifier.fillMaxWidth()
