@@ -8,11 +8,9 @@ import androidx.navigation.compose.composable
 import com.example.smartmanage.data.AppDatabase
 import com.example.smartmanage.data.Template
 import com.example.smartmanage.data.Transaction
-import com.example.smartmanage.ui.screens.AnalyticsScreen
-import com.example.smartmanage.ui.screens.BudgetScreen
-import com.example.smartmanage.ui.screens.DashboardScreen
-import com.example.smartmanage.ui.screens.SettingsScreen
-import com.example.smartmanage.ui.screens.TemplatesScreen
+import com.example.smartmanage.ui.screens.*
+import com.example.smartmanage.ui.screens.LoginScreen
+import com.example.smartmanage.ui.screens.SignupScreen
 import kotlinx.coroutines.launch
 
 @Composable
@@ -34,35 +32,39 @@ fun AppNavGraph(
             LoginScreen(
                 onLogin = {
                     navController.navigate("dashboard") {
-                        popUpTo(navController.graph.startDestinationId) {
-                            inclusive = true
-                        }
+                        popUpTo("login") { inclusive = true }
                         launchSingleTop = true
                     }
                 },
                 onDemoLogin = {
                     scope.launch {
                         val dao = database.transactionDao()
-                        dao.insert(Transaction(amount = 5000.0, type = "income", category = "Salary", note = "Salary"))
+                        dao.insert(Transaction(amount = 5000.0, type = "income", category = "Salary", note = "Monthly Salary"))
                         dao.insert(Transaction(amount = 1500.0, type = "expense", category = "Housing", note = "Rent"))
                         dao.insert(Transaction(amount = 300.0, type = "expense", category = "Food", note = "Groceries"))
                         dao.insert(Transaction(amount = 100.0, type = "expense", category = "Transport", note = "Transport"))
                         dao.insert(Transaction(amount = 1200.0, type = "income", category = "Freelance", note = "Freelance Project"))
                         dao.insert(Transaction(amount = 450.0, type = "expense", category = "Entertainment", note = "Dinner & Movies"))
                         dao.insert(Transaction(amount = 80.0, type = "expense", category = "Food", note = "Coffee"))
-                        
+
                         // Seed some templates
                         dao.insertTemplate(Template(name = "Monthly Salary", amount = 5000.0, type = "INCOME", category = "Salary", isRecurring = true, frequency = "monthly"))
                         dao.insertTemplate(Template(name = "Rent Payment", amount = 1200.0, type = "EXPENSE", category = "Housing", isRecurring = true, frequency = "monthly"))
                         dao.insertTemplate(Template(name = "Personal Finance", amount = 1000.0, type = "EXPENSE", category = "Personal", isRecurring = true, frequency = "monthly"))
                     }
                     navController.navigate("dashboard") {
-                        popUpTo(navController.graph.startDestinationId) {
-                            inclusive = true
-                        }
+                        popUpTo("login") { inclusive = true }
                         launchSingleTop = true
                     }
-                }
+                },
+                navController = navController
+            )
+        }
+
+        // ---------------- SIGNUP ----------------
+        composable("signup") {
+            SignupScreen(
+                navController = navController
             )
         }
 
